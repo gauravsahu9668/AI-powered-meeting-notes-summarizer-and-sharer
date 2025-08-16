@@ -9,7 +9,7 @@ const dotenv=require('dotenv');
 dotenv.config();
 app.use(express.json());
 app.use(cors({
-    origin:"https://ai-powered-meeting-notes-summarizer-ecru.vercel.app",
+    origin:["https://ai-powered-meeting-notes-summarizer-ecru.vercel.app","https://ai-powered-meeting-no-git-94520a-gaurav-sahus-projects-e1bcfc89.vercel.app/"],
     credentials:true,
 }))
 const storage=multer.diskStorage({
