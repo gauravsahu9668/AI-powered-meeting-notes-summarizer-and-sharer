@@ -30,7 +30,6 @@ app.post('/upload/pdf', upload.single('pdf'), async (req, res) => {
     const file = req.file;
     console.log(file)
     const prompt = req.body.prompt;
-    const system_prompt="";
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
@@ -76,14 +75,12 @@ Based on the provided transcript and the user's instruction, generate a clear an
     model: "gpt-3.5-turbo",
     messages: [
       { role: "system", content: systemPrompt },
-      { role: "user", content:"generate the summarie of the fiven transacription"}
+      { role: "user", content:"generate the summary of the fiven transacription"}
     ],
     temperature: 0.7
     })
     });
-
     const data = await response.json();
-
     return res.json({
       message: "File uploaded successfully",
       file: file,  // Sending back file info in the response
