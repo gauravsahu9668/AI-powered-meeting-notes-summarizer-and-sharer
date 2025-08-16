@@ -30,6 +30,7 @@ const handleFileUpload = async (file:any) => {
   body: formdata
 });
 const responseData = await response.json();
+console.log(responseData)
 setsummary(responseData.data.choices[0].message.content);
 console.log(responseData);
         console.log("file uploaded");
