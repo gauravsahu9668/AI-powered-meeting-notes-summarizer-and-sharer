@@ -139,3 +139,7 @@ const mailsender=async(email,title,body)=>{
         console.log(error.message)
     }
 }
+
+app.get('/gaurav', (req, res) => {
+  res.send('getting get request');
+});
