@@ -25,7 +25,7 @@ const handleFileUpload = async (file:any) => {
         const formdata = new FormData();
         formdata.append('pdf', file);
         formdata.append('prompt',prompt);
-        const response = await fetch("http://localhost:3000/upload/pdf", {
+        const response = await fetch("https://ai-powered-meeting-notes-summarizer-virid.vercel.app/upload/pdf", {
   method: "POST",
   body: formdata
 });
@@ -67,7 +67,7 @@ console.log(responseData);
         formdata.append('email', email);
         formdata.append('title',"Meeting minutes");
         formdata.append('html',summary);
-        const response = await fetch("http://localhost:3000/send-email", {
+        const response = await fetch("https://ai-powered-meeting-notes-summarizer-virid.vercel.app/send-email", {
         method: "POST",
         body: formdata
         });
