@@ -1,7 +1,6 @@
 import {  useState } from "react";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css'; 
-import { BackendUrl } from "./pages/url";
 function App() {
   const [prompt,setprompt]=useState("");
   const [file,setfile]=useState(null);
@@ -28,7 +27,7 @@ function App() {
         formdata.append('pdf', file);
         formdata.append('prompt',prompt);
         setGenrating(true);
-        const response = await fetch(`${BackendUrl}/upload/pdf`, {
+        const response = await fetch(`https://ai-powered-meeting-notes-summarizer-and-oeh1.onrender.com/upload/pdf`, {
   method: "POST",
   body: formdata
 });
@@ -71,7 +70,7 @@ setGenrating(false);
         formdata.append('title', "Meeting minutes");
         formdata.append('html', summary);
         setsharing(true);
-        const response = await fetch(`${BackendUrl}/send-email`, {
+        const response = await fetch(`https://ai-powered-meeting-notes-summarizer-and-oeh1.onrender.com/send-email`, {
         method: "POST",
         body: formdata
         });
