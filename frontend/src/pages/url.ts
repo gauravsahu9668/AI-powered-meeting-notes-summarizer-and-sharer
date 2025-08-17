@@ -1,0 +1,1 @@
+export const BackendUrl="https://ai-powered-meeting-notes-summarizer-and-oeh1.onrender.com"

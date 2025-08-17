@@ -1,10 +1,15 @@
 import {  useState } from "react";
-import ReactQuill from 'react-quill'; // Import Quill
-import 'react-quill/dist/quill.snow.css'; // Import Quill CSS
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css'; 
+import { BackendUrl } from "./pages/url";
 function App() {
   const [prompt,setprompt]=useState("");
   const [file,setfile]=useState(null);
   const [summary,setsummary]=useState("");
+  const [Generaating,setGenrating]=useState(false);
+  const [sharing ,setsharing]=useState(false)
+  const [email,setemail]=useState("");
+  const [emails,setemails]=useState<string[]>([]);
   const handleFileValidation = (file:any) => {
   if (file.type !== 'application/pdf') {
     alert('Please upload only PDF files');
@@ -15,34 +20,30 @@ function App() {
     return;
   }
   setfile(file);
-};
-const handleFileUpload = async (file:any) => {
+  };
+  const handleFileUpload = async (file:any) => {
   try {
-    console.log("Uploading file:", file);
-    console.log(prompt);
       if (file) {
-        console.log("Calling");
         const formdata = new FormData();
         formdata.append('pdf', file);
         formdata.append('prompt',prompt);
-        const response = await fetch("https://ai-powered-meeting-notes-summarizer-and-oeh1.onrender.com/upload/pdf", {
+        setGenrating(true);
+        const response = await fetch(`${BackendUrl}/upload/pdf`, {
   method: "POST",
   body: formdata
 });
 const responseData = await response.json();
-console.log(responseData)
 setsummary(responseData.data.choices[0].message.content);
-console.log(responseData);
-        console.log("file uploaded");
+setGenrating(false);
       }
     }
     catch(error){
       console.log(error)
+      alert("Try Again later")
     }
-};
+  };
   const handleFileInput = (e:any) => {
     if (e.target.files && e.target.files[0]) {
-      console.log(e.target.files[0])
       handleFileValidation(e.target.files[0]);
     }
   };
@@ -56,32 +57,46 @@ console.log(responseData);
   const handleChange = (value:any) => {
     setsummary(value);
   };
-   const saveEditedContent = () => {
-    console.log('Edited Content:', summary);
+  const saveEditedContent = () => {
+    alert("summary saved successfully")
   };
   const shareEditable=async()=>{
         try{
-          if(email===""){
+          if(emails.length===0){
             alert("Enter a valid email first");
+            return
           }
         const formdata = new FormData();
-        formdata.append('email', email);
-        formdata.append('title',"Meeting minutes");
-        formdata.append('html',summary);
-        const response = await fetch("https://ai-powered-meeting-notes-summarizer-and-oeh1.onrender.com/send-email", {
+        formdata.append('emails', JSON.stringify(emails)); // Send array as JSON string
+        formdata.append('title', "Meeting minutes");
+        formdata.append('html', summary);
+        setsharing(true);
+        const response = await fetch(`${BackendUrl}/send-email`, {
         method: "POST",
         body: formdata
         });
         const responseData = await response.json();
+        setsharing(false)
+        setemails([]);
+        alert("mails sends successfully")
         console.log(responseData)
         }catch(error){
           console.log(error)
         }
   }
-  const [email,setemail]=useState("");
+  const addHandler=()=>{
+      if(email===""){
+        alert("Enter valid email")
+      }
+      setemails(prevEmails => [...prevEmails, email]);
+      setemail("");
+  }
   return (
     <div className="w-screen min-h-screen">
       <div>
+        <div className="upload">
+          Upload the text transcription PDF
+        </div>
         <input
           type="file"
           accept=".pdf"// Attach ref to the input element // Hide the input element (it will be triggered by the button)
@@ -94,7 +109,11 @@ console.log(responseData);
           <input type="text" placeholder="enter prompt" onChange={(e)=>{setprompt(e.target.value)}}>
           </input>
         </div>
-        <button onClick={generateHandler}>Generate</button>
+        <button onClick={generateHandler}>
+         {
+          Generaating ?(<div className="rotating-loader"></div>):("Generate")
+         }
+        </button>
       </div>
       <div>
       <h3>Edit Meeting Summary</h3>
@@ -118,8 +137,23 @@ console.log(responseData);
       <button onClick={saveEditedContent}>Save Edited Summary</button>
       </div>
       <div>
-        <input type="email" placeholder="enter receiver email" onChange={(e:any)=>{setemail(e.target.value)}}></input>
-        <button onClick={shareEditable}>Share</button>
+        <div className="upload">Enter receiver email address</div>
+        <input type="email" value={email} placeholder="enter receiver email" onChange={(e:any)=>{setemail(e.target.value)}}></input>
+        <button className="add" onClick={addHandler}>Add</button>
+        <button onClick={shareEditable}>
+          {
+            sharing ?(<div className="rotating-loader"></div>):("Share")
+          }
+        </button>
+        <div>
+          {
+            emails.map((email,index)=>{
+              return (
+                <div key={`${index}`} className="email_item">{email}</div>
+              )
+            })
+          }
+        </div>
       </div>
     </div>
   );

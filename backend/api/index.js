@@ -28,17 +28,13 @@ app.get('/', (req, res) => {
 app.post('/upload/pdf', upload.single('pdf'), async (req, res) => {
   try {
     const file = req.file;
-    console.log(file)
     const prompt = req.body.prompt;
     if (!file) {
       return res.status(400).json({ message: "No file uploaded" });
     }
-    console.log(file.path)
     const loader =new PDFLoader(file.path)
     const perPageDocs =await loader.load();
     const combinedContent = perPageDocs.map(doc => doc.pageContent).join('\n');
-    console.log(combinedContent)
-
     const systemPrompt = `
 You are an AI assistant that is capable of summarizing meeting notes or call transcripts in an organized, structured, and precise manner. Your goal is to interpret the provided transcript and generate a summary based on the user’s specific request. The summary should be concise, well-structured, and in **bullet points** for easy readability.
 
@@ -63,8 +59,6 @@ ${prompt}
 **Your Task:**
 Based on the provided transcript and the user's instruction, generate a clear and structured summary in HTML format with <h5> for section titles and <ul> and <li> for action items.
 `;
-
-
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -83,7 +77,7 @@ Based on the provided transcript and the user's instruction, generate a clear an
     const data = await response.json();
     return res.json({
       message: "File uploaded successfully",
-      file: file,  // Sending back file info in the response
+      file: file,
       prompt:prompt,
       data:data
     });
@@ -94,17 +88,28 @@ Based on the provided transcript and the user's instruction, generate a clear an
 });
 app.post('/send-email', upload.none(), async (req, res) => {
   try {
-    const { email, title, html } = req.body;
-    if (!email || !title || !html) {
-      return res.json({
+    const emailsJson = req.body.emails;
+    let emails = [];
+    try {
+      emails = JSON.parse(emailsJson);
+    } catch (e) {
+      return res.status(400).json({
         success: false,
-        message: "Missing required fields: email, title, or html."
+        message: "Invalid emails format. Expected JSON array."
       });
     }
-    await mailsender(email,title,html)
+    const { title, html } = req.body;
+    if (!Array.isArray(emails) || emails.length === 0 || !title || !html) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields: valid emails array, title, or html."
+      });
+    }
+    await mailsender(emails,title,html)
     return res.json({
       success: true,
-      message: "Email sent successfully"
+      message: "Email sent successfully",
+      eamils:emails
     });
   } catch (error) {
     console.error("Error processing email:", error);
@@ -117,29 +122,55 @@ app.post('/send-email', upload.none(), async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-const mailsender=async(email,title,body)=>{
-    try{
-        const transporter= nodemailer.createTransport({
-           host:process.env.MAIL_HOST,
-           auth:{
-            user:process.env.MAIL_USER,
-            pass:process.env.MAIL_PASS
-           }
-        })
-        let info=transporter.sendMail({
-            from:"- gaurav sahu from Testimonial",
-            to:`${email}`,
-            subject:`${title}`,
-            html:`${body}`
-        })
-        console.log(info);
-        return info;
-    }
-    catch(error){
-        console.log(error.message)
-    }
-}
+// const mailsender=async(email,title,body)=>{
+//     try{
+//         const transporter= nodemailer.createTransport({
+//            host:process.env.MAIL_HOST,
+//            auth:{
+//             user:process.env.MAIL_USER,
+//             pass:process.env.MAIL_PASS
+//            }
+//         })
+//         let info=transporter.sendMail({
+//             from:"- gaurav sahu from Testimonial",
+//             to:`${email}`,
+//             subject:`${title}`,
+//             html:`${body}`
+//         })
+//         console.log(info);
+//         return info;
+//     }
+//     catch(error){
+//         console.log(error.message)
+//     }
+// }
+const mailsender = async (emails, title, body) => {
+    try {
+        const transporter = nodemailer.createTransport({
+            host: process.env.MAIL_HOST,
+            auth: {
+                user: process.env.MAIL_USER,
+                pass: process.env.MAIL_PASS,
+            },
+        });
 
+        // Convert single email to array for consistency
+        const recipients = Array.isArray(emails) ? emails : [emails];
+
+        const info = await transporter.sendMail({
+            from: '"Gaurav Sahu from Testimonial" <your-email@example.com>',
+            to: recipients.join(', '), // Join array into comma-separated string
+            subject: title,
+            html: body,
+        });
+
+        console.log('Email sent:', info.response);
+        return info;
+    } catch (error) {
+        console.error('Email sending failed:', error.message);
+        throw error; // Re-throw to handle failures in the calling function
+    }
+};
 app.get('/gaurav', (req, res) => {
   res.send('getting get request');
 });
