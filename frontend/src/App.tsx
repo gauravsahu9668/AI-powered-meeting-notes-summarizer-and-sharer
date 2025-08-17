@@ -27,7 +27,7 @@ function App() {
         formdata.append('pdf', file);
         formdata.append('prompt',prompt);
         setGenrating(true);
-        const response = await fetch(`https://ai-powered-meeting-notes-summarizer-and-oeh1.onrender.com/upload/pdf`, {
+        const response = await fetch(`https://ai-powered-meeting-notes-summarizer-and-87vu.onrender.com/upload/pdf`, {
   method: "POST",
   body: formdata
 });
@@ -39,6 +39,7 @@ setGenrating(false);
     catch(error){
       console.log(error)
       alert("Try Again later")
+      setGenrating(false);
     }
   };
   const handleFileInput = (e:any) => {
@@ -70,17 +71,18 @@ setGenrating(false);
         formdata.append('title', "Meeting minutes");
         formdata.append('html', summary);
         setsharing(true);
-        const response = await fetch(`https://ai-powered-meeting-notes-summarizer-and-oeh1.onrender.com/send-email`, {
+        const response = await fetch(`https://ai-powered-meeting-notes-summarizer-and-87vu.onrender.com/send-email`, {
         method: "POST",
         body: formdata
         });
         const responseData = await response.json();
-        setsharing(false)
         setemails([]);
+        setsharing(false)
         alert("mails sends successfully")
         console.log(responseData)
         }catch(error){
           console.log(error)
+           setsharing(false)
         }
   }
   const addHandler=()=>{
